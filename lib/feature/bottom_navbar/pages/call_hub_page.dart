@@ -14,21 +14,6 @@ class CallHubPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = [
-      {
-        'title': 'Messages',
-        'subtitle': 'Catch up with friends',
-        'icon': Icons.chat_bubble_rounded,
-        'color': AppColors.primary,
-      },
-      {
-        'title': 'Video Calls',
-        'subtitle': 'Start a clear call',
-        'icon': Icons.videocam_rounded,
-        'color': AppColors.secondary,
-      },
-    ];
-
     return Container(
       color: AppColors.neutralBg,
       child: SafeArea(
@@ -49,73 +34,7 @@ class CallHubPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            ...cards.map(
-              (item) => Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.neutralCard,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: (item['color'] as Color).withOpacity(0.14),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        item['icon'] as IconData,
-                        color: item['color'] as Color,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'] as String,
-                            style: GlobalTextStyle.heading(
-                              fontSize: 16,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item['subtitle'] as String,
-                            style: GlobalTextStyle.body(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: AppColors.textMuted,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Available users',
-              style: GlobalTextStyle.heading(
-                fontSize: 18,
-                color: AppColors.textPrimary,
-              ),
-            ),
+
             const SizedBox(height: 10),
             Obx(() {
               if (controller.isLoading.value) {
@@ -142,9 +61,7 @@ class CallHubPage extends StatelessWidget {
                   child: Text(
                     'No other users are online yet. Share the app to start calling!',
                     textAlign: TextAlign.center,
-                    style: GlobalTextStyle.body(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: GlobalTextStyle.body(color: AppColors.textSecondary),
                   ),
                 );
               }
@@ -187,10 +104,7 @@ class _ContactTile extends StatelessWidget {
   final AppUser user;
   final VoidCallback onCall;
 
-  const _ContactTile({
-    required this.user,
-    required this.onCall,
-  });
+  const _ContactTile({required this.user, required this.onCall});
 
   @override
   Widget build(BuildContext context) {
@@ -218,10 +132,7 @@ class _ContactTile extends StatelessWidget {
         ),
         title: Text(
           user.displayName,
-          style: GlobalTextStyle.heading(
-            fontSize: 15,
-            color: Colors.black87,
-          ),
+          style: GlobalTextStyle.heading(fontSize: 15, color: Colors.black87),
         ),
         subtitle: Row(
           children: [

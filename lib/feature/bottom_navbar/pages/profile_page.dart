@@ -12,32 +12,47 @@ class ProfilePage extends StatelessWidget {
     final AuthController auth = Get.find<AuthController>();
     return Container(
       color: AppColors.neutralBg,
-      child: SafeArea(
-        child: Stack(
-          children: [
-            Container(
-              height: 220,
-              decoration: const BoxDecoration(
-                gradient: AppColors.headerGradient,
-              ),
-            ),
-            SingleChildScrollView(
+      child: Stack(
+        children: [
+          Container(
+            height: 220,
+            decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+          ),
+          Obx(() {
+            final user = auth.user.value;
+            final displayName = user?.displayName?.trim();
+            final email = user?.email;
+            final initials =
+                (displayName?.isNotEmpty == true
+                        ? displayName!.substring(0, 1)
+                        : (email?.isNotEmpty == true ? email![0] : 'U'))
+                    .toUpperCase();
+            final joinedLabel =
+                'Joined: ${(user?.metadata.creationTime)?.toLocal().toIso8601String().split('T').first ?? 'Unknown'}';
+            return SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
-                  Center(
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/logo.jpg',
-                        width: 96,
-                        height: 96,
-                        fit: BoxFit.cover,
+                  const SizedBox(height: 60),
+                  CircleAvatar(
+                    radius: 56,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    child: CircleAvatar(
+                      radius: 48,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        initials,
+                        style: GlobalTextStyle.heading(
+                          fontSize: 32,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Olpo Olpoi',
+                    displayName?.isNotEmpty == true
+                        ? displayName!
+                        : email ?? 'Guest User',
                     style: GlobalTextStyle.heading(
                       fontSize: 20,
                       color: Colors.white,
@@ -45,16 +60,24 @@ class ProfilePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Connecting people with clarity',
+                    email ?? 'No email linked',
                     style: GlobalTextStyle.body(
                       fontSize: 13,
                       color: Colors.white70,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    joinedLabel,
+                    style: GlobalTextStyle.body(
+                      fontSize: 12,
+                      color: Colors.white60,
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.neutralCard,
                       borderRadius: BorderRadius.circular(16),
@@ -67,12 +90,32 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: const [
-                        _Stat(label: 'Posts', value: '124'),
-                        _Stat(label: 'Followers', value: '3.4K'),
-                        _Stat(label: 'Following', value: '310'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Account info',
+                          style: GlobalTextStyle.heading(
+                            fontSize: 16,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _InfoRow(
+                          label: 'Name',
+                          value: displayName?.isNotEmpty == true
+                              ? displayName!
+                              : 'Not set',
+                        ),
+                        _InfoRow(
+                          label: 'Email',
+                          value: email ?? 'Not available',
+                        ),
+                        _InfoRow(
+                          label: 'UID',
+                          value: user?.uid ?? 'Unknown',
+                          isMonospace: true,
+                        ),
                       ],
                     ),
                   ),
@@ -115,13 +158,30 @@ class ProfilePage extends StatelessWidget {
                       ],
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Text(
+                      'Privacy Policy • Terms & Conditions',
+                      style: GlobalTextStyle.body(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: ElevatedButton.icon(
                       onPressed: () => auth.signOut(),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: Colors.redAccent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -143,9 +203,59 @@ class ProfilePage extends StatelessWidget {
                   const SizedBox(height: 24),
                 ],
               ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isMonospace;
+
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.isMonospace = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: GlobalTextStyle.body(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: isMonospace
+                  ? const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      color: AppColors.textPrimary,
+                    )
+                  : GlobalTextStyle.body(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -163,18 +273,12 @@ class _Stat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: GlobalTextStyle.heading(
-            fontSize: 16,
-            color: Colors.black87,
-          ),
+          style: GlobalTextStyle.heading(fontSize: 16, color: Colors.black87),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: GlobalTextStyle.body(
-            fontSize: 12,
-            color: Colors.black54,
-          ),
+          style: GlobalTextStyle.body(fontSize: 12, color: Colors.black54),
         ),
       ],
     );
@@ -214,12 +318,19 @@ class _ProfileTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GlobalTextStyle.heading(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: GlobalTextStyle.heading(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: GlobalTextStyle.body(fontSize: 12),
+                  style: GlobalTextStyle.body(
+                    fontSize: 12,
+                    color: Colors.black87,
+                  ),
                 ),
               ],
             ),

@@ -13,7 +13,7 @@ class BottomNavbarScreen extends StatelessWidget {
   final BottomNavController navController = Get.put(BottomNavController());
 
   final List<Widget> _pages = [
-    const SocialPage(),
+    SocialPage(),
     CallHubPage(),
     const ProfilePage(),
   ];
@@ -38,7 +38,7 @@ class BottomNavbarScreen extends StatelessWidget {
                 color: Colors.black.withOpacity(0.08),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
-              )
+              ),
             ],
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
@@ -73,9 +73,12 @@ class BottomNavbarScreen extends StatelessWidget {
                         Text(
                           item.label,
                           style: GlobalTextStyle.body(
-                            color: selected ? AppColors.primary : Colors.black54,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500,
+                            color: selected
+                                ? AppColors.primary
+                                : Colors.black54,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ],

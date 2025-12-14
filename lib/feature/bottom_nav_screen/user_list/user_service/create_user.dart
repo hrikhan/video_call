@@ -13,10 +13,7 @@ class UserService {
   CollectionReference<Map<String, dynamic>> get _callSessions =>
       _firestore.collection('callSessions');
 
-  Future<void> ensureUserDocument(
-    User user, {
-    String? displayName,
-  }) async {
+  Future<void> ensureUserDocument(User user, {String? displayName}) async {
     final doc = _users.doc(user.uid);
     final snapshot = await doc.get();
     final name = displayName?.trim().isNotEmpty == true
@@ -33,10 +30,7 @@ class UserService {
     if (snapshot.exists) {
       await doc.update(payload);
     } else {
-      await doc.set({
-        ...payload,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      await doc.set({...payload, 'createdAt': FieldValue.serverTimestamp()});
     }
   }
 
@@ -57,12 +51,23 @@ class UserService {
     );
   }
 
+  Future<AppUser?> fetchUser(String uid) async {
+    try {
+      final doc = await _users.doc(uid).get();
+      if (!doc.exists) return null;
+      return AppUser.fromDoc(doc);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<CallSession> startCall({
     required AppUser callee,
     required User caller,
   }) async {
     final doc = _callSessions.doc();
-    final callerName = caller.displayName ??
+    final callerName =
+        caller.displayName ??
         caller.email?.split('@').first ??
         'Unknown Caller';
 
@@ -90,9 +95,9 @@ class UserService {
         .where('status', isEqualTo: CallStatus.ringing.name)
         .snapshots()
         .map((snapshot) {
-      if (snapshot.docs.isEmpty) return null;
-      return CallSession.fromDoc(snapshot.docs.first);
-    });
+          if (snapshot.docs.isEmpty) return null;
+          return CallSession.fromDoc(snapshot.docs.first);
+        });
   }
 
   Stream<CallSession?> watchCall(String callId) {
@@ -108,9 +113,9 @@ class UserService {
 
   Future<void> acceptCall(CallSession session) async {
     await Future.wait([
-      _callSessions
-          .doc(session.id)
-          .update({'status': CallStatus.accepted.name}),
+      _callSessions.doc(session.id).update({
+        'status': CallStatus.accepted.name,
+      }),
       _safeUpdate(session.calleeId, {
         'incomingCallId': FieldValue.delete(),
         'activeCallId': session.id,
@@ -119,16 +124,15 @@ class UserService {
   }
 
   Future<void> declineCall(CallSession session) async {
-    await _callSessions
-        .doc(session.id)
-        .update({'status': CallStatus.declined.name});
+    await _callSessions.doc(session.id).update({
+      'status': CallStatus.declined.name,
+    });
     await clearUserCallState(session);
   }
 
   Future<void> clearUserCallState(CallSession session) async {
     await Future.wait([
-      _safeUpdate(
-          session.callerId, {'activeCallId': FieldValue.delete()}),
+      _safeUpdate(session.callerId, {'activeCallId': FieldValue.delete()}),
       _safeUpdate(session.calleeId, {
         'incomingCallId': FieldValue.delete(),
         'activeCallId': FieldValue.delete(),
