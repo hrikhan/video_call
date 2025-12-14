@@ -2,13 +2,15 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:video_calling_system/feature/call_screen/widgets/local_video_view.dart';
-import 'package:video_calling_system/feature/call_screen/widgets/remote_video_view.dart';
+import 'package:video_calling_system/feature/bottom_nav_screen/call_screen/widgets/local_video_view.dart';
+import 'package:video_calling_system/feature/bottom_nav_screen/call_screen/widgets/remote_video_view.dart';
+import 'package:video_calling_system/feature/bottom_nav_screen/user_list/models/call_session.dart';
 import '../controllers/call_controller.dart';
 
 class CallScreen extends StatelessWidget {
-  CallScreen({super.key});
+  CallScreen({super.key, required this.session});
 
+  final CallSession session;
   final CallController controller = Get.find<CallController>();
 
   @override
@@ -16,6 +18,8 @@ class CallScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final accent = Colors.tealAccent.shade400;
     controller.ensureCallStarted();
+    final participantName =
+        controller.isIncoming ? session.callerName : session.calleeName;
 
     return Scaffold(
       body: Obx(() {
@@ -76,7 +80,7 @@ class CallScreen extends StatelessWidget {
                             const CircularProgressIndicator(),
                             const SizedBox(height: 12),
                             Text(
-                              "Waiting for other user to join...",
+                              "Waiting for $participantName to join...",
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.8),
                                 fontSize: 16,
@@ -167,55 +171,81 @@ class CallScreen extends StatelessWidget {
                   ),
                 ),
                 child: SafeArea(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.35),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.circle, color: accent, size: 10),
-                            const SizedBox(width: 6),
-                            const Text(
-                              "Live",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.35),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
                               ),
                             ),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.circle, color: accent, size: 10),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  "Live",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Obx(
+                            () => Text(
+                              controller.callDuration.value,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: controller.leaveCall,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child:
+                                  const Icon(Icons.close, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        participantName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Obx(
                         () => Text(
-                          controller.callDuration.value,
+                          controller.agora.remoteUid.value != null
+                              ? 'Connected'
+                              : 'Calling...',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withOpacity(0.8),
                           ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Get.back(),
-                        child: Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.close, color: Colors.white),
                         ),
                       ),
                     ],

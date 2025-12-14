@@ -1,13 +1,22 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:video_calling_system/app_constants/app_constant.dart';
+import 'package:video_calling_system/feature/bottom_nav_screen/user_list/models/call_session.dart';
+import 'package:video_calling_system/feature/bottom_nav_screen/user_list/user_service/create_user.dart';
 import 'package:video_calling_system/services/agora_services.dart';
-import 'dart:async';
 
 class CallController extends GetxController {
+  CallController({
+    required this.session,
+    this.isIncoming = false,
+  });
+
+  final CallSession session;
+  final bool isIncoming;
   final AgoraService _agoraService = AgoraService();
+  final UserService _userService = UserService();
 
   var isJoined = false.obs;
   var callDuration = "00:00".obs;
@@ -22,6 +31,8 @@ class CallController extends GetxController {
   bool _isInitializing = false;
   int _elapsedSeconds = 0;
   Worker? _remoteWatcher;
+  StreamSubscription<CallSession?>? _sessionWatcher;
+  bool _hasLeftScreen = false;
 
   AgoraService get agora => _agoraService;
 
@@ -30,7 +41,7 @@ class CallController extends GetxController {
     super.onInit();
     _remoteWatcher = ever<int?>(_agoraService.remoteUid,
         (uid) => uid != null ? _startCallTimer() : _stopCallTimer());
-    initCall();
+    _sessionWatcher = _userService.watchCall(session.id).listen(_onSession);
   }
 
   void _startCallTimer() {
@@ -78,12 +89,12 @@ class CallController extends GetxController {
       final uid = Random().nextInt(100000);
       localUid.value = uid;
       await _agoraService.joinChannel(
-        token: AppConstants.tempToken,
-        channelId: AppConstants.channelName,
+        token: session.token,
+        channelId: session.channelName,
         uid: uid,
       );
       isJoined.value = true;
-      print("Successfully joined channel with uid: $uid");
+      print("Successfully joined channel ${session.channelName} with uid: $uid");
     } catch (e) {
       print("Error initializing call: $e");
     } finally {
@@ -105,12 +116,24 @@ class CallController extends GetxController {
     return granted;
   }
 
-  void leaveCall() async {
+  Future<void> leaveCall({bool triggeredByRemote = false}) async {
+    if (_hasLeftScreen) return;
+    _hasLeftScreen = true;
     _stopCallTimer(reset: true);
     localUid.value = null;
-    await _agoraService.leaveChannel();
+    if (_agoraService.isInitialized.value) {
+      await _agoraService.leaveChannel();
+    }
     isJoined.value = false;
-    Get.back();
+    if (!triggeredByRemote) {
+      await _userService.endCall(session);
+    }
+    Get.close(1);
+    Future.microtask(() {
+      if (Get.isRegistered<CallController>()) {
+        Get.delete<CallController>(force: true);
+      }
+    });
   }
 
   void ensureCallStarted() {
@@ -134,10 +157,27 @@ class CallController extends GetxController {
     _agoraService.switchCamera();
   }
 
+  void _onSession(CallSession? updated) {
+    if (updated == null) {
+      if (!_hasLeftScreen) {
+        leaveCall(triggeredByRemote: true);
+      }
+      return;
+    }
+    if (updated.status == CallStatus.declined && !isIncoming) {
+      Get.snackbar('Call declined',
+          '${session.calleeName} is currently unavailable.');
+      leaveCall(triggeredByRemote: true);
+    } else if (updated.status == CallStatus.ended && !_hasLeftScreen) {
+      leaveCall(triggeredByRemote: true);
+    }
+  }
+
   @override
   void onClose() {
     _stopCallTimer();
     _remoteWatcher?.dispose();
+    _sessionWatcher?.cancel();
     super.onClose();
   }
 }

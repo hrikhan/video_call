@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:video_calling_system/feature/call_screen/controllers/call_controller.dart';
-import 'package:video_calling_system/feature/call_screen/screen/call_screen.dart';
+import 'package:video_calling_system/feature/bottom_navbar/pages/call_hub_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -73,10 +71,7 @@ class HomeScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Get.put(CallController());
-                        Get.to(() => CallScreen());
-                      },
+                      onPressed: () => Get.to(() => CallHubPage()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.blue.shade900,

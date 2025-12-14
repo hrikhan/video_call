@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "285435385012",
+    "project_id": "meet-time-25a70",
+    "storage_bucket": "meet-time-25a70.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:285435385012:android:b9ef381fdfbb30a0ffb3e1",
+        "android_client_info": {
+          "package_name": "com.example.video_calling_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoPbSnJHU8FG99bmGC__au8tTbKyu7ySI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
