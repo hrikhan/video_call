@@ -147,8 +147,6 @@ class SocialPage extends StatelessWidget {
                             controller.callingPostId.value == post.id;
                         final isOwnPost =
                             controller.currentUserId == post.authorId;
-                        final canCallAuthor =
-                            controller.canCallAuthor(post);
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _FeedVideoCard(
@@ -157,7 +155,6 @@ class SocialPage extends StatelessWidget {
                             time: _relativeTime(post.createdAt),
                             isCalling: isCalling,
                             isOwnPost: isOwnPost,
-                            canCallAuthor: canCallAuthor,
                             onCall: () => controller.requestRecipe(post),
                           ),
                         );
@@ -196,7 +193,6 @@ class _FeedVideoCard extends StatefulWidget {
   final String time;
   final bool isCalling;
   final bool isOwnPost;
-  final bool canCallAuthor;
   final VoidCallback onCall;
 
   const _FeedVideoCard({
@@ -205,7 +201,6 @@ class _FeedVideoCard extends StatefulWidget {
     required this.time,
     required this.isCalling,
     required this.isOwnPost,
-    required this.canCallAuthor,
     required this.onCall,
   });
 
@@ -379,9 +374,7 @@ class _FeedVideoCardState extends State<_FeedVideoCard> {
                       ),
                     ),
                     ElevatedButton.icon(
-                      onPressed: (widget.isOwnPost ||
-                              widget.isCalling ||
-                              !widget.canCallAuthor)
+                      onPressed: (widget.isOwnPost || widget.isCalling)
                           ? null
                           : widget.onCall,
                       icon: Icon(
@@ -395,24 +388,11 @@ class _FeedVideoCardState extends State<_FeedVideoCard> {
                             ? 'Your post'
                             : widget.isCalling
                                 ? 'Calling...'
-                                : widget.canCallAuthor
-                                    ? 'Call'
-                                    : 'Not in contacts',
+                                : 'Call',
                       ),
                     ),
                   ],
                 ),
-                if (!widget.canCallAuthor && !widget.isOwnPost)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      'Add them from the Calls tab to connect.',
-                      style: GlobalTextStyle.body(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
