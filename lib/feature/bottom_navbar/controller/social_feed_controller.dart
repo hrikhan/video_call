@@ -25,18 +25,12 @@ class SocialFeedController extends GetxController {
   final RxBool isUploading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxnString callingPostId = RxnString();
-  final RxSet<String> contactIds = <String>{}.obs;
-
   StreamSubscription<List<SocialPost>>? _subscription;
-  StreamSubscription<User?>? _authSubscription;
-  StreamSubscription<List<AppUser>>? _contactsSubscription;
 
   @override
   void onInit() {
     super.onInit();
     _listenToFeed();
-    _authSubscription = _auth.authStateChanges().listen(_handleAuthChange);
-    _handleAuthChange(_auth.currentUser);
   }
 
   void _listenToFeed() {
@@ -57,32 +51,12 @@ class SocialFeedController extends GetxController {
   @override
   void onClose() {
     _subscription?.cancel();
-    _authSubscription?.cancel();
-    _contactsSubscription?.cancel();
     super.onClose();
   }
 
   String? get currentUserId => _auth.currentUser?.uid;
 
-  bool canCallAuthor(SocialPost post) {
-    if (post.authorId.isEmpty) return false;
-    if (currentUserId == post.authorId) return false;
-    return contactIds.contains(post.authorId);
-  }
-
-  void _handleAuthChange(User? user) {
-    _contactsSubscription?.cancel();
-    contactIds.clear();
-    contactIds.refresh();
-    if (user == null) return;
-    _contactsSubscription =
-        _userService.streamOtherUsers(user.uid).listen((users) {
-      contactIds
-        ..clear()
-        ..addAll(users.map((u) => u.id));
-      contactIds.refresh();
-    });
-  }
+  bool canCallAuthor(SocialPost post) => currentUserId != post.authorId;
 
   Future<void> shareMedia({String? caption}) async {
     final user = _auth.currentUser;
@@ -205,14 +179,6 @@ class SocialFeedController extends GetxController {
       Get.snackbar(
         'Sign in required',
         'You need to be signed in to start a call.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-    if (!canCallAuthor(post)) {
-      Get.snackbar(
-        'Not in contacts',
-        'Add them from the Calls tab before requesting a recipe.',
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
